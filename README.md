@@ -16,6 +16,7 @@ The backend url is being defined as an environment variable, and is being inform
 ```
 ./start.sh
 ```
+http://localhost:8080/
 
 - stop:
 ```
