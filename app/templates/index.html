@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <script type="application/javascript">
+    function draw() {
+      var canvas = document.getElementById('canvas');
+      if (canvas.getContext) {
+        var ctx = canvas.getContext('2d');
+
+
+        var depots = JSON.parse(cleanString('{{ data.depots }}'));
+        for (let i = 0; i < depots.length; i++) {
+          depots[i]['color'] = 'rgb(157, 209, 253)'
+        }
+
+        var landmarks = JSON.parse(cleanString('{{ data.landmarks }}'));
+        for (let i = 0; i < landmarks.length; i++) {
+          landmarks[i]['size'] = 100
+          landmarks[i]['color'] = 'yellow'
+          landmarks[i]['y'] = landmarks[i]['y'] - 5
+        }
+        building(ctx, depots.concat(landmarks))
+      }
+
+    }
+
+    function building(ctx, data) {
+      var i = 0, r;
+      while (r = data[i++]) {
+        ctx.beginPath();
+        ctx.rect((r.x * 4) + 400 - ((r.size / 10) / 2), (r.y * 4 * -1) + 400 - ((r.size / 10) / 2), r.size / 10, r.size / 10);
+        ctx.fillStyle = r.color;
+        ctx.fill();
+
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'center'
+        ctx.font = '15px Roboto';
+        ctx.fillText((r.label ? r.label : ""), (r.x * 4) + 400, (r.y * 4 * -1) + 405);
+      }
+
+      canvas.onmousemove = function (e) {
+        var rect = this.getBoundingClientRect(),
+          x = e.clientX - rect.left,
+          y = e.clientY - rect.top,
+          i = 0, r;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        while (r = data[i++]) {
+          ctx.beginPath();
+          ctx.rect((r.x * 4) + 400 - ((r.size / 10) / 2), (r.y * 4 * -1) + 400 - ((r.size / 10) / 2), r.size / 10, r.size / 10);
+          ctx.fillStyle = ctx.isPointInPath(x, y) ? "lightslategrey" : r.color;
+          ctx.fill();
+
+          ctx.fillStyle = 'black';
+          ctx.textAlign = 'center'
+          ctx.font = '15px Roboto';
+          ctx.fillText(ctx.isPointInPath(x, y) ? "location: (" + r.x + ", " + r.y + ")" : (r.label ? r.label : ""), (r.x * 4) + 400, (r.y * 4 * -1) + 405);
+          if (r.metadata) {
+            ctx.fillText(ctx.isPointInPath(x, y) ? "metadata: " + r.metadata : "", (r.x * 4) + 400, (r.y * 4 * -1) + 420);
+          }
+        }
+
+      };
+    }
+
+    function cleanString(str) {
+      str = str.replace(/&#34;/g, '"')
+      str = str.replace(/&#39;/g, '"');
+      str = str.replace(/"s /g, "\'s ")
+      console.log(str);
+      return str
+    }
+  </script>
+  <style type="text/css">
+    canvas {
+      border: 1px solid black;
+      background-color: lightslategrey;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: auto;
+      justify-items: center;
+      align-items: center;
+      font-family: "Roboto";
+    }
+
+    .legend-scale ul {
+      margin: 0;
+      margin-bottom: 5px;
+      padding: 0;
+      float: left;
+      list-style: none;
+    }
+
+    .legend-scale ul li {
+      font-size: 80%;
+      list-style: none;
+      margin-left: 0;
+      line-height: 18px;
+      margin-bottom: 2px;
+    }
+
+    ul.legend-labels li span {
+      display: block;
+      float: left;
+      height: 16px;
+      width: 30px;
+      margin-right: 5px;
+      margin-left: 0;
+      border: 1px solid #999;
+    }
+
+    .legend-source {
+      font-size: 70%;
+      color: #999;
+      clear: both;
+    }
+
+    a span {
+      color: #777;
+    }
+  </style>
+</head>
+
+<body onload="draw();">
+  <div>
+    <h3>Location Map</h3>
+  </div>
+  <div class='legend-scale'>
+    <ul class='legend-labels'>
+      <li><span style='background:rgb(157, 209, 253);'></span>Depots</li>
+      <li><span style='background:yellow;'></span>Landmarks</li>
+    </ul>
+  </div>
+  <div class='legend-source'>Source: <span>Mouse over a colored area not mapped below to see details</span></div>
+  <div>
+    <canvas id="canvas" width="800" height="800"></canvas>
+  </div>
+</body>
+
+</html>
